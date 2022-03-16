@@ -1,0 +1,1 @@
+smart-base project for Spring Boot

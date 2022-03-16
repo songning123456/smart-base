@@ -7,5 +7,7 @@
     <groupId>com.sonin</groupId>
     <artifactId>smart-base</artifactId>
     <version>1.0.0</version>
+    <name>smart-base</name>
+    <description>smart-base project for Spring Boot</description>
 
 </project>
