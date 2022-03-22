@@ -5,10 +5,7 @@ import com.sonin.base.core.callback.IBeanConvertCallback;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author sonin
@@ -403,7 +400,7 @@ public class BeanExtUtils {
         if (src == null) {
             return new HashMap<>();
         }
-        Map<String, Object> map = new HashMap<>();
+        Map<String, Object> map = new LinkedHashMap<>();
         Class srcClass = src.getClass();
         while (srcClass != null && !"java.lang.Object".equals(srcClass.getName())) {
             Field[] srcFields = srcClass.getDeclaredFields();
@@ -438,7 +435,7 @@ public class BeanExtUtils {
         List<Field> fieldList = new ArrayList<>();
         // 遍历存储
         for (S src : srcList) {
-            Map<String, Object> map = new HashMap<>();
+            Map<String, Object> map = new LinkedHashMap<>();
             if (fieldList.isEmpty()) {
                 Class srcClass = src.getClass();
                 while (srcClass != null && !"java.lang.Object".equals(srcClass.getName())) {
@@ -463,6 +460,49 @@ public class BeanExtUtils {
         // 清理缓存
         fieldList.clear();
         return mapList;
+    }
+
+    /**
+     * vo 转换成map; e.g: DemoDTO{DemoA_id:1,DemoA_name:"nameA",DemoB_id:2,DemoB_name:"nameB"} => {DemoA:{id:1,name:"nameA"},DemoB:{id:2,name:"nameB"}}
+     *
+     * @param src
+     * @param <S>
+     * @return
+     * @throws Exception
+     */
+    public static <S> Map<String, Map<String, Object>> bean2MultiMap(S src) throws Exception {
+        // 判空
+        if (src == null) {
+            return new HashMap<>();
+        }
+        Map<String, Map<String, Object>> map = new LinkedHashMap<>();
+        Class srcClass = src.getClass();
+        while (srcClass != null && !"java.lang.Object".equals(srcClass.getName())) {
+            Field[] srcFields = srcClass.getDeclaredFields();
+            for (Field srcField : srcFields) {
+                srcField.setAccessible(true);
+                String[] fieldNames = splitByLowerUnderscore(srcField.getName());
+                map.computeIfAbsent(fieldNames[0], k -> new LinkedHashMap<>());
+                map.get(fieldNames[0]).put(fieldNames[1], srcField.get(src));
+                srcField.setAccessible(false);
+            }
+            srcClass = srcClass.getSuperclass();
+        }
+        return map;
+    }
+
+    private static String[] splitByLowerUnderscore(String srcFieldName) {
+        String[] targetFieldNames = new String[2];
+        StringBuilder stringBuilder = new StringBuilder();
+        String[] srcFieldNames = srcFieldName.split("_");
+        targetFieldNames[0] = srcFieldNames[0];
+        int i = srcFieldNames.length > 1 ? 1 : 0;
+        while (i < srcFieldNames.length) {
+            stringBuilder.append("_").append(srcFieldNames[i]);
+            i++;
+        }
+        targetFieldNames[1] = stringBuilder.toString().replaceFirst("_", "");
+        return targetFieldNames;
     }
 
 }

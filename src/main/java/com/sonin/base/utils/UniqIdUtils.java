@@ -1,7 +1,8 @@
 package com.sonin.base.utils;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.net.InetAddress;
 import java.security.SecureRandom;
@@ -15,8 +16,9 @@ import java.util.concurrent.atomic.AtomicLong;
  * @date 2021/10/17 13:37
  * 32位整形的主键
  */
-@Slf4j
 public class UniqIdUtils {
+
+    private static final Log log = LogFactory.getLog(UniqIdUtils.class);
 
     private static UniqIdUtils uniqIdUtils = new UniqIdUtils();
 
@@ -33,7 +35,7 @@ public class UniqIdUtils {
             final InetAddress inetAddress = InetAddress.getLocalHost();
             hostAddr = inetAddress.getHostAddress();
         } catch (Exception e) {
-            log.error("[UniqID] Get HostAddr Error: {}", e.getMessage());
+            log.error("[UniqID] Get HostAddr Error: " + e);
             hostAddr = String.valueOf(System.currentTimeMillis());
         }
         if (null == hostAddr || hostAddr.trim().length() == 0 || "127.0.0.1".equals(hostAddr)) {
@@ -130,14 +132,12 @@ public class UniqIdUtils {
 
 
     /**
-     * demo
+     * demo案例
      *
      * @param args
      */
     public static void main(String[] args) {
         String uid = UniqIdUtils.getInstance().getUniqID();
-        log.info("uid: {}", uid);
-        log.info("uid length: {}", uid.length());
     }
 
 }
