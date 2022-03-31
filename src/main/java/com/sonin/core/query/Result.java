@@ -208,6 +208,8 @@ public class Result implements IBase {
                     fieldName = fieldName.toLowerCase().charAt(3) + fieldName.substring(4);
                     if (map.containsKey(fieldName)) {
                         method.invoke(target, map.get(fieldName));
+                    } else if (map.containsKey(targetClass.getSimpleName() + "_" + fieldName)) {
+                        method.invoke(target, map.get(targetClass.getSimpleName() + "_" + fieldName));
                     }
                 }
             }
@@ -246,6 +248,8 @@ public class Result implements IBase {
                     fieldName = fieldName.toLowerCase().charAt(3) + fieldName.substring(4);
                     if (map.containsKey(fieldName)) {
                         method.invoke(target, map.get(fieldName));
+                    } else if (map.containsKey(targetClass.getSimpleName() + "_" + fieldName)) {
+                        method.invoke(target, map.get(targetClass.getSimpleName() + "_" + fieldName));
                     }
                     // 补充回调
                     if (this.callbackMap != null && this.callbackMap.containsValue(fieldName)) {
