@@ -67,18 +67,20 @@ public class Result implements IBase {
      */
     public Map<String, Object> map2MapWithPrefix(Map<String, Object> srcMap, IBeanConvertCallback iBeanConvertCallback) {
         Map<String, Object> targetMap = new LinkedHashMap<>(2);
+        String srcFieldName;
+        Object srcFieldVal, callbackFieldVal;
         for (Map.Entry<String, Object> item : srcMap.entrySet()) {
-            String srcFieldName = item.getKey();
+            srcFieldName = item.getKey();
             if (this.selectedColumns != null && !this.selectedColumns.contains(srcFieldName)) {
                 continue;
             }
-            Object srcFieldVal = item.getValue();
+            srcFieldVal = item.getValue();
             if (srcFieldVal instanceof Date) {
                 srcFieldVal = dateFormat(EMPTY + srcFieldVal, "yyyy-MM-dd HH:mm:ss");
             }
             targetMap.put(srcFieldName, srcFieldVal);
             if (this.callbackMap != null && this.callbackMap.get(srcFieldName) != null) {
-                Object callbackFieldVal = iBeanConvertCallback.doBeanConvert(this.callbackMap.get(srcFieldName), srcFieldVal);
+                callbackFieldVal = iBeanConvertCallback.doBeanConvert(this.callbackMap.get(srcFieldName), srcFieldVal);
                 targetMap.put(this.callbackMap.get(srcFieldName), callbackFieldVal);
             }
         }
@@ -108,12 +110,14 @@ public class Result implements IBase {
      */
     public Map<String, Object> map2MapWithoutPrefix(Map<String, Object> srcMap) {
         Map<String, Object> targetMap = new LinkedHashMap<>(2);
+        String srcFieldName;
+        Object srcFieldVal;
         for (Map.Entry<String, Object> item : srcMap.entrySet()) {
-            String srcFieldName = item.getKey();
+            srcFieldName = item.getKey();
             if (this.selectedColumns != null && !this.selectedColumns.contains(srcFieldName)) {
                 continue;
             }
-            Object srcFieldVal = item.getValue();
+            srcFieldVal = item.getValue();
             if (srcFieldVal instanceof Date) {
                 srcFieldVal = dateFormat(EMPTY + srcFieldVal, "yyyy-MM-dd HH:mm:ss");
             }
@@ -145,18 +149,20 @@ public class Result implements IBase {
      */
     public Map<String, Object> map2MapWithoutPrefix(Map<String, Object> srcMap, IBeanConvertCallback iBeanConvertCallback) {
         Map<String, Object> targetMap = new LinkedHashMap<>(2);
+        String srcFieldName;
+        Object srcFieldVal, callbackFieldVal;
         for (Map.Entry<String, Object> item : srcMap.entrySet()) {
-            String srcFieldName = item.getKey();
+            srcFieldName = item.getKey();
             if (this.selectedColumns != null && !this.selectedColumns.contains(srcFieldName)) {
                 continue;
             }
-            Object srcFieldVal = item.getValue();
+            srcFieldVal = item.getValue();
             if (srcFieldVal instanceof Date) {
                 srcFieldVal = dateFormat(EMPTY + srcFieldVal, "yyyy-MM-dd HH:mm:ss");
             }
             targetMap.put(splitByLowerUnderscore(srcFieldName), srcFieldVal);
             if (this.callbackMap != null && this.callbackMap.get(srcFieldName) != null) {
-                Object callbackFieldVal = iBeanConvertCallback.doBeanConvert(this.callbackMap.get(srcFieldName), srcFieldVal);
+                callbackFieldVal = iBeanConvertCallback.doBeanConvert(this.callbackMap.get(srcFieldName), srcFieldVal);
                 targetMap.put(this.callbackMap.get(srcFieldName), callbackFieldVal);
             }
         }
@@ -197,14 +203,17 @@ public class Result implements IBase {
         }
         // 构建对象集合
         List<T> targetList = new ArrayList<>();
+        T target;
+        Method[] methods;
+        String fieldName;
         // 遍历存储
         for (Map<String, Object> map : mapList) {
-            T target = targetClass.newInstance();
-            Method[] methods = targetClass.getMethods();
+            target = targetClass.newInstance();
+            methods = targetClass.getMethods();
             for (Method method : methods) {
                 if (method.getName().startsWith("set")) {
                     // 截取属性名
-                    String fieldName = method.getName();
+                    fieldName = method.getName();
                     fieldName = fieldName.toLowerCase().charAt(3) + fieldName.substring(4);
                     if (map.containsKey(fieldName)) {
                         method.invoke(target, map.get(fieldName));
@@ -237,14 +246,18 @@ public class Result implements IBase {
         }
         // 构建对象集合
         List<T> targetList = new ArrayList<>();
+        T target;
+        Method[] methods;
+        String fieldName;
+        Object callbackFieldVal;
         // 遍历存储
         for (Map<String, Object> map : mapList) {
-            T target = targetClass.newInstance();
-            Method[] methods = targetClass.getMethods();
+            target = targetClass.newInstance();
+            methods = targetClass.getMethods();
             for (Method method : methods) {
                 if (method.getName().startsWith("set")) {
                     // 截取属性名
-                    String fieldName = method.getName();
+                    fieldName = method.getName();
                     fieldName = fieldName.toLowerCase().charAt(3) + fieldName.substring(4);
                     if (map.containsKey(fieldName)) {
                         method.invoke(target, map.get(fieldName));
@@ -253,7 +266,7 @@ public class Result implements IBase {
                     }
                     // 补充回调
                     if (this.callbackMap != null && this.callbackMap.containsValue(fieldName)) {
-                        Object callbackFieldVal = iBeanConvertCallback.doBeanConvert(fieldName, map.get(getKeyByVal(this.callbackMap, fieldName)));
+                        callbackFieldVal = iBeanConvertCallback.doBeanConvert(fieldName, map.get(getKeyByVal(this.callbackMap, fieldName)));
                         method.invoke(target, callbackFieldVal);
                     }
                 }

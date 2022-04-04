@@ -39,14 +39,16 @@ public abstract class Base implements IBase {
      */
     String initColumns() {
         StringBuilder stringBuilder = new StringBuilder();
+        String className, tableName, classFieldName, tableFieldName, alias;
+        Field[] fields;
         for (Class clazz : this.classes) {
-            String className = clazz.getSimpleName();
-            String tableName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, className);
-            Field[] fields = clazz.getDeclaredFields();
+            className = clazz.getSimpleName();
+            tableName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, className);
+            fields = clazz.getDeclaredFields();
             for (Field field : fields) {
-                String classFieldName = field.getName();
-                String tableFieldName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, classFieldName);
-                String alias = DOUBLE_QUOTES + className + UNDERLINE + classFieldName + DOUBLE_QUOTES;
+                classFieldName = field.getName();
+                tableFieldName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, classFieldName);
+                alias = DOUBLE_QUOTES + className + UNDERLINE + classFieldName + DOUBLE_QUOTES;
                 stringBuilder.append(COMMA).append(SPACE).append(tableName).append(DOT).append(tableFieldName).append(SPACE).append(AS).append(SPACE).append(alias);
             }
         }
@@ -76,8 +78,9 @@ public abstract class Base implements IBase {
     private String initSql() throws Exception {
         String suffixSql = this.queryWrapper.getCustomSqlSegment();
         Map<String, Object> paramNameValuePairs = this.queryWrapper.getParamNameValuePairs();
+        Object value;
         for (Map.Entry<String, Object> item : paramNameValuePairs.entrySet()) {
-            Object value = item.getValue();
+            value = item.getValue();
             sqlInject("" + value);
             if (value instanceof String) {
                 value = "'" + value + "'";
@@ -97,12 +100,13 @@ public abstract class Base implements IBase {
         if (this.selectedColumns == null) {
             this.selectedColumns = new LinkedHashSet<>();
         }
+        String className, tableName, fieldName, column, alias;
         for (Field field : fields) {
-            String className = field.getDeclaringClass().getSimpleName();
-            String tableName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, className);
-            String fieldName = field.getName();
-            String column = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, fieldName);
-            String alias = tableName + DOT + column + SPACE + AS + SPACE + DOUBLE_QUOTES + className + UNDERLINE + fieldName + DOUBLE_QUOTES;
+            className = field.getDeclaringClass().getSimpleName();
+            tableName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, className);
+            fieldName = field.getName();
+            column = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, fieldName);
+            alias = tableName + DOT + column + SPACE + AS + SPACE + DOUBLE_QUOTES + className + UNDERLINE + fieldName + DOUBLE_QUOTES;
             this.selectedColumns.add(alias);
         }
         return this;
