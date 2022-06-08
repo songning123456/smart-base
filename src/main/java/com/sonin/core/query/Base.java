@@ -1,10 +1,11 @@
 package com.sonin.core.query;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.common.base.CaseFormat;
 import com.sonin.modules.base.service.IBaseService;
-import com.sonin.utils.CustomApplicationContext;
+import com.sonin.core.context.SpringContext;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -46,6 +47,11 @@ public abstract class Base implements IBase {
             tableName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, className);
             fields = clazz.getDeclaredFields();
             for (Field field : fields) {
+                // 过滤掉 @TableField(exist = false) 情况
+                TableField tableFieldAnno = field.getAnnotation(TableField.class);
+                if (tableFieldAnno != null && !tableFieldAnno.exist()) {
+                    continue;
+                }
                 classFieldName = field.getName();
                 tableFieldName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, classFieldName);
                 alias = DOUBLE_QUOTES + className + UNDERLINE + classFieldName + DOUBLE_QUOTES;
@@ -145,8 +151,6 @@ public abstract class Base implements IBase {
 
     public abstract Base rightJoin(Class clazz, Field leftField, Field rightField);
 
-    public abstract Base and(Field leftField, Field rightField);
-
     /**
      * 准备构造查询条件
      *
@@ -171,7 +175,7 @@ public abstract class Base implements IBase {
         String rightTableName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, rightClassName);
         String rightFieldName = rightField.getName();
         String rightColumn = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, rightFieldName);
-        this.queryWrapper.eq(condition, leftTableName + DOT + leftColumn, rightTableName + DOT + rightColumn);
+        this.queryWrapper.apply(condition, (leftTableName + DOT + leftColumn) + " = " + (rightTableName + DOT + rightColumn));
         return this;
     }
 
@@ -315,28 +319,28 @@ public abstract class Base implements IBase {
      */
 
     public Map<String, Object> selectMap() {
-        IBaseService baseService = CustomApplicationContext.getBean(IBaseService.class);
+        IBaseService baseService = SpringContext.getBean(IBaseService.class);
         return baseService.selectMap(this.prefixSql, this.queryWrapper);
     }
 
     public IPage<Map<String, Object>> selectMapsPage(IPage<?> page) {
-        IBaseService baseService = CustomApplicationContext.getBean(IBaseService.class);
+        IBaseService baseService = SpringContext.getBean(IBaseService.class);
         return baseService.selectMapsPage(page, this.prefixSql, this.queryWrapper);
     }
 
     public List<Map<String, Object>> selectMaps() {
-        IBaseService baseService = CustomApplicationContext.getBean(IBaseService.class);
+        IBaseService baseService = SpringContext.getBean(IBaseService.class);
         return baseService.selectMaps(this.prefixSql, this.queryWrapper);
     }
 
     public Map<String, Object> selectMap(String DBName) throws Exception {
-        JdbcTemplate jdbcTemplate = (JdbcTemplate) CustomApplicationContext.getBean(DBName);
+        JdbcTemplate jdbcTemplate = (JdbcTemplate) SpringContext.getBean(DBName);
         return jdbcTemplate.queryForMap(initSql());
     }
 
     public IPage<Map<String, Object>> selectMapsPage(IPage<Map<String, Object>> page, String DBName, String customPageSql) throws Exception {
-        JdbcTemplate jdbcTemplate = (JdbcTemplate) CustomApplicationContext.getBean(DBName);
-        TransactionTemplate transactionTemplate = CustomApplicationContext.getBean(TransactionTemplate.class);
+        JdbcTemplate jdbcTemplate = (JdbcTemplate) SpringContext.getBean(DBName);
+        TransactionTemplate transactionTemplate = SpringContext.getBean(TransactionTemplate.class);
         String countSql = SELECT + SPACE + COUNT_ALL + SPACE + FROM + SPACE + LEFT_BRACKET + initSql() + RIGHT_BRACKET + SPACE + AS + SPACE + "tmp";
         if (customPageSql == null || "".equals(customPageSql)) {
             queryWrapper.last(LIMIT + SPACE + (page.getCurrent() - 1) * page.getSize() + COMMA + SPACE + page.getCurrent() * page.getSize());
@@ -353,7 +357,7 @@ public abstract class Base implements IBase {
     }
 
     public List<Map<String, Object>> selectMaps(String DBName) throws Exception {
-        JdbcTemplate jdbcTemplate = (JdbcTemplate) CustomApplicationContext.getBean(DBName);
+        JdbcTemplate jdbcTemplate = (JdbcTemplate) SpringContext.getBean(DBName);
         return jdbcTemplate.queryForList(initSql());
     }
 
